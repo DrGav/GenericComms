@@ -1,20 +1,46 @@
 ﻿using System;
+using System.Windows.Forms;
+using BioLis_30i.Forms;
+using BioLis_30i.DTOs;
+using BioLis_30i.Services;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
-using BioLis_30i.DTOs;
-using BioLis_30i.Services;
 
 namespace BioLis_30i
 {
-    class Program
+    static class Program
     {
-        static async Task Main(string[] args)
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main(string[] args)
         {
-            Console.WriteLine("BioLis-30i HL7 Listener");
-            Console.WriteLine("======================");
+            // Check if console mode is requested
+            if (args.Length > 0 && args[0].ToLower() == "--console")
+            {
+                // Run in console mode
+                ProcessMessagesInConsoleMode(args).GetAwaiter().GetResult();
+            }
+            else
+            {
+                // Run in GUI mode
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new MainForm());
+            }
+        }
+
+        /// <summary>
+        /// Command-line mode for processing HL7 messages without the UI
+        /// </summary>
+        static async Task ProcessMessagesInConsoleMode(string[] args)
+        {
+            Console.WriteLine("BioLis-30i HL7 Listener (Console Mode)");
+            Console.WriteLine("=====================================");
 
             int port = 50001;
             var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
@@ -29,7 +55,6 @@ namespace BioLis_30i
 
                 using (var client = await listener.AcceptTcpClientAsync())
                 {
-
                     var endpoint = client.Client.RemoteEndPoint as IPEndPoint;
                     Console.WriteLine($"\nConnection received from {endpoint}");
 
@@ -53,26 +78,26 @@ namespace BioLis_30i
                         }
 
                         var message = messageBuilder.ToString();
-                        //Console.WriteLine("\nReceived message:");
-                        //Console.WriteLine(message);
+                        Console.WriteLine("\nReceived message:");
+                        Console.WriteLine(message);
 
                         // Parse the message and create acknowledgment
                         var parsedMessage = parser.ParseMessage(message);
-                        var HL7_Result = parser.MapToOLUDTO(parsedMessage);
+                        var oluMessage = parser.MapToOLUDTO(parsedMessage);
+                        var genericResults = genericParser.MapToGenericResult(oluMessage);
 
-                        var genResult = genericParser.MapToGenericResult(HL7_Result);
-
-                        foreach (var result in genResult)
+                        // Display results in a table format
+                        Console.WriteLine("\nTest Results:");
+                        Console.WriteLine("----------------------------------------");
+                        Console.WriteLine($"| Message ID | Test Code | Test Name | Result | Units | Reference Range |");
+                        Console.WriteLine("----------------------------------------");
+                        
+                        foreach (var result in genericResults)
                         {
-                            Console.WriteLine($"ID: {result.MessageId}");
-                            Console.WriteLine($"Code: {result.TestCode}");
-                            Console.WriteLine($"Test Name: {result.TestName}");
-                            Console.WriteLine($"Result: {result.Result}");
-                            Console.WriteLine($"Units: {result.Units}");
-                            Console.WriteLine($"Reference Range: {result.ReferenceRange}");
-                            Console.WriteLine($"------------------------------------");
-                            Console.WriteLine($"");
+                            Console.WriteLine($"| {result.MessageId} | {result.TestCode} | {result.TestName} | {result.Result} | {result.Units} | {result.ReferenceRange} |");
                         }
+                        
+                        Console.WriteLine("----------------------------------------");
 
                         var ack = parser.CreateAcknowledgment(parsedMessage.MessageId);
 
