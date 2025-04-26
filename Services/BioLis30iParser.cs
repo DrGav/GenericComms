@@ -4,7 +4,7 @@ using System.Text;
 using System.Linq;
 using BioLis_30i.DTOs;
 
-namespace BioLis_30i
+namespace BioLis_30i.Services
 {
     public class BioLis30iParser
     {
@@ -51,7 +51,7 @@ namespace BioLis_30i
                 parsedMessage.Segments[segmentName].Add(line);
 
                 // Parse MSH segment
-                if (segmentName.Contains("MSH"))
+                if (segmentName == "\vMSH")
                 {
                     if (fields.Length > 8)
                     {
@@ -59,7 +59,7 @@ namespace BioLis_30i
                         parsedMessage.SendingFacility = fields[3];
                         parsedMessage.ReceivingApplication = fields[4];
                         parsedMessage.ReceivingFacility = fields[5];
-                        
+
                         if (DateTime.TryParse(fields[6], out DateTime messageDateTime))
                         {
                             parsedMessage.MessageDateTime = messageDateTime;
@@ -97,7 +97,7 @@ namespace BioLis_30i
             var oluDto = new OULMessageDTO();
 
             // Map MSH segment
-            if (parsedMessage.Segments.TryGetValue("MSH", out var mshSegments) && mshSegments.Any())
+            if (parsedMessage.Segments.TryGetValue("\vMSH", out var mshSegments) && mshSegments.Any())
             {
                 var mshFields = mshSegments[0].Split(FieldSeparator);
                 if (mshFields.Length > 9)
@@ -125,7 +125,7 @@ namespace BioLis_30i
                 {
                     var patientId = pidFields[3].Split(ComponentSeparator);
                     var patientName = pidFields[5].Split(ComponentSeparator);
-                    
+
                     oluDto = oluDto with
                     {
                         PatientId = patientId[0],
@@ -264,4 +264,4 @@ namespace BioLis_30i
             return oluDto;
         }
     }
-} 
+}

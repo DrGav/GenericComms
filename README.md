@@ -1,64 +1,117 @@
 # BioLis-30i HL7 Listener
 
-A .NET Core application that implements an HL7 message listener for the BioLis-30i system. This application listens for incoming HL7 messages on a specified port, parses them, and sends acknowledgments back to the sender.
+A Windows application for receiving and processing HL7 messages from BioLis 30i analyzers. The application provides a user-friendly interface for monitoring and displaying test results in real-time.
 
 ## Features
 
-- HL7 message listening on configurable port (default: 50001)
-- HL7 message parsing with support for:
-  - Message header (MSH) segment parsing
-  - Message type identification
-  - Sending/Receiving application details
-  - Message timestamps
-- Automatic acknowledgment generation
-- Console-based logging of received messages and sent acknowledgments
+- Real-time HL7 message reception
+- Support for OUL (Observation Result) message types
+- Modern dark-themed user interface
+- Live console logging
+- Results display in a data grid
+- Configurable IP and port settings
+- Clear console and results functionality
+- Status monitoring
 
 ## Requirements
 
-- .NET Core 6.0 or later
 - Windows operating system
+- .NET 6.0 or later
+- Network connectivity for HL7 message reception
 
-## Configuration
+## Installation
 
-The application is configured to listen on:
-- IP Address: 127.0.0.1 (localhost)
-- Port: 50001
+1. Download the latest release from the releases page
+2. Extract the files to your desired location
+3. Run `BioLis-30i.exe`
 
 ## Usage
 
-1. Build the application:
+### Starting the Application
+
+1. Launch `BioLis-30i.exe`
+2. The application will open with the main interface showing:
+   - Control panel at the top
+   - Console log in the middle
+   - Results grid at the bottom
+   - Status bar at the very bottom
+
+### Configuration
+
+1. The default settings are:
+   - IP Address: 127.0.0.1 (localhost)
+   - Port: 50001
+2. You can modify these settings in the top panel before starting the listener
+
+### Operating the Application
+
+1. Click "Start Listening" to begin receiving HL7 messages
+2. The status bar will show the current listening state
+3. Received messages will be:
+   - Displayed in the console log
+   - Parsed and shown in the results grid
+   - Automatically acknowledged
+4. Use "Clear All" to reset the console and results grid
+5. Click "Stop Listening" to stop receiving messages
+
+### Message Processing
+
+The application processes OUL (Observation Result) messages and displays:
+- Message ID
+- Test Code
+- Test Name
+- Result
+- Units
+- Reference Range
+- Observation Date/Time
+- Result Status
+
+## Console Mode
+
+The application can also run in console mode for automated processing:
+
 ```bash
-dotnet build
+BioLis-30i.exe --console
 ```
 
-2. Run the application:
-```bash
-dotnet run
-```
+Console mode provides the same functionality without the graphical interface, suitable for:
+- Server environments
+- Automated processing
+- Integration with other systems
 
-3. The application will start listening for HL7 messages on the configured port.
+## Troubleshooting
 
-4. To stop the application, press Ctrl+C.
+Common issues and solutions:
 
-## Message Format
+1. **Connection Issues**
+   - Verify the IP and port settings
+   - Ensure no firewall is blocking the connection
+   - Check if the analyzer is properly configured to send messages
 
-The application expects HL7 messages in the standard format with segments separated by carriage returns. Example:
+2. **Message Processing Errors**
+   - Check the console log for error messages
+   - Verify the message format is correct
+   - Ensure the analyzer is sending OUL message type
 
-```
-MSH|^~\\&|SENDING_APP|SENDING_FAC|RECEIVING_APP|RECEIVING_FAC|20230424120000||ORM^O01|MSG00001|P|2.5
-PID|1||12345^^^MRN||DOE^JOHN||19700101|M
-...
-```
+3. **Application Not Responding**
+   - Check if the port is already in use
+   - Verify network connectivity
+   - Restart the application if needed
 
-## Acknowledgment Format
+## Support
 
-The application generates acknowledgments in the following format:
-
-```
-MSH|^~\\&|BioLis|30i|Sender|Facility|{timestamp}||ACK^A01|{guid}|P|2.5
-MSA|AA|{original_message_id}|Message processed successfully
-```
+For technical support or questions, please contact:
+- Email: support@example.com
+- Phone: (555) 123-4567
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This software is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
+
+## Version History
+
+- 1.0.0
+  - Initial release
+  - Basic HL7 message processing
+  - GUI interface
+  - Console mode support 
