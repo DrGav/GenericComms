@@ -3,6 +3,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
+using BioLis_30i.DTOs;
+using BioLis_30i.Services;
 
 namespace BioLis_30i
 {
@@ -13,10 +16,10 @@ namespace BioLis_30i
             Console.WriteLine("BioLis-30i HL7 Listener");
             Console.WriteLine("======================");
 
-
             int port = 50001;
             var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
             var parser = new BioLis30iParser();
+            var genericParser = new GenericResultMappingService();
 
             try
             {
@@ -50,11 +53,27 @@ namespace BioLis_30i
                         }
 
                         var message = messageBuilder.ToString();
-                        Console.WriteLine("\nReceived message:");
-                        Console.WriteLine(message);
+                        //Console.WriteLine("\nReceived message:");
+                        //Console.WriteLine(message);
 
                         // Parse the message and create acknowledgment
                         var parsedMessage = parser.ParseMessage(message);
+                        var HL7_Result = parser.MapToOLUDTO(parsedMessage);
+
+                        var genResult = genericParser.MapToGenericResult(HL7_Result);
+
+                        foreach (var result in genResult)
+                        {
+                            Console.WriteLine($"ID: {result.MessageId}");
+                            Console.WriteLine($"Code: {result.TestCode}");
+                            Console.WriteLine($"Test Name: {result.TestName}");
+                            Console.WriteLine($"Result: {result.Result}");
+                            Console.WriteLine($"Units: {result.Units}");
+                            Console.WriteLine($"Reference Range: {result.ReferenceRange}");
+                            Console.WriteLine($"------------------------------------");
+                            Console.WriteLine($"");
+                        }
+
                         var ack = parser.CreateAcknowledgment(parsedMessage.MessageId);
 
                         // Send acknowledgment
