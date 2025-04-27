@@ -27,12 +27,15 @@ namespace BioLis_30i.Forms
         private delegate void UpdateUIDelegate(string message);
         private delegate void UpdateResultsDelegate(List<GenericResult> results);
         private System.Windows.Forms.Panel panelBottom;
+        private System.Windows.Forms.Button btnExport;
+        private CsvExportService _csvExportService;
 
         public MainForm()
         {
             InitializeComponent();
             _parser = new BioLis30iParser();
             _genericParser = new GenericResultMappingService();
+            _csvExportService = new CsvExportService();
             
             // Configure DataGridView columns for OLU message results
             dgvResults.Columns.Clear();
@@ -253,6 +256,21 @@ namespace BioLis_30i.Forms
             this.panelBottom.Controls.Add(this.lblStatus);
             
             // 
+            // btnExport
+            // 
+            this.btnExport = new System.Windows.Forms.Button();
+            this.btnExport.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+            this.btnExport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnExport.ForeColor = System.Drawing.Color.White;
+            this.btnExport.Location = new System.Drawing.Point(222, 15);
+            this.btnExport.Name = "btnExport";
+            this.btnExport.Size = new System.Drawing.Size(80, 30);
+            this.btnExport.TabIndex = 10;
+            this.btnExport.Text = "Export CSV";
+            this.btnExport.UseVisualStyleBackColor = false;
+            this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
+            
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -278,6 +296,9 @@ namespace BioLis_30i.Forms
             
             // Add btnClear to panelTop
             this.panelTop.Controls.Add(this.btnClear);
+            
+            // Add btnExport to panelTop
+            this.panelTop.Controls.Add(this.btnExport);
             
             ((System.ComponentModel.ISupportInitialize)(this.dgvResults)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -493,6 +514,39 @@ namespace BioLis_30i.Forms
             txtConsole.Clear();
             dgvResults.Rows.Clear();
             LogToConsole("Console and results cleared");
+        }
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var results = new List<GenericResult>();
+                foreach (DataGridViewRow row in dgvResults.Rows)
+                {
+                    if (!row.IsNewRow)
+                    {
+                        results.Add(new GenericResult
+                        {
+                            MessageId = row.Cells["MessageId"].Value?.ToString(),
+                            TestCode = row.Cells["TestCode"].Value?.ToString(),
+                            TestName = row.Cells["TestName"].Value?.ToString(),
+                            Result = row.Cells["Result"].Value?.ToString(),
+                            Units = row.Cells["Units"].Value?.ToString(),
+                            ReferenceRange = row.Cells["ReferenceRange"].Value?.ToString(),
+                            ObservationDateTime = DateTime.TryParse(row.Cells["ObservationDateTime"].Value?.ToString(), out DateTime dateTime) ? dateTime : null,
+                            ResultStatus = row.Cells["ResultStatus"].Value?.ToString()
+                        });
+                    }
+                }
+
+                _csvExportService.ExportResultsToCsv(results);
+                LogToConsole("Results exported to CSV successfully");
+            }
+            catch (Exception ex)
+            {
+                LogToConsole($"Error exporting to CSV: {ex.Message}");
+                MessageBox.Show($"Error exporting to CSV: {ex.Message}", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 } 
