@@ -2,6 +2,8 @@
 
 A Windows application for receiving and processing HL7 messages from BioLis 30i analyzers. The application provides a user-friendly interface for monitoring and displaying test results in real-time.
 
+![Application Screenshot](screenshots/main-window.png)
+
 ## Features
 
 - Real-time HL7 message reception
@@ -12,6 +14,67 @@ A Windows application for receiving and processing HL7 messages from BioLis 30i 
 - Configurable IP and port settings
 - Clear console and results functionality
 - Status monitoring
+- CSV export functionality
+
+## Customizing Result Mapping
+
+The application uses a generic result mapping system that allows you to customize which HL7 OUL properties are mapped to the final results. This is done through the `GenericResultMappingService` class.
+
+### Available OUL Properties
+
+The following OUL properties can be mapped to the generic results:
+
+```csharp
+public class OLUDTO
+{
+    public string MessageId { get; set; }
+    public string PatientId { get; set; }
+    public string PatientName { get; set; }
+    public string OrderNumber { get; set; }
+    public string SpecimenId { get; set; }
+    public string SpecimenType { get; set; }
+    public string CollectionDateTime { get; set; }
+    public string TestCode { get; set; }
+    public string TestName { get; set; }
+    public string Result { get; set; }
+    public string Units { get; set; }
+    public string ReferenceRange { get; set; }
+    public string ObservationDateTime { get; set; }
+    public string ResultStatus { get; set; }
+    public string Comments { get; set; }
+}
+```
+
+### Customizing the Mapping
+
+To customize which properties are mapped:
+
+1. Open `Services/GenericResultMappingService.cs`
+2. Locate the `MapToGenericResult` method
+3. Modify the property assignments to include or exclude desired fields
+4. Update the DataGridView columns in `MainForm.cs` to match your changes
+
+Example of customizing the mapping:
+
+```csharp
+public GenericResult MapToGenericResult(OLUDTO oluMessage)
+{
+    return new GenericResult
+    {
+        // Include only the properties you want
+        MessageId = oluMessage.MessageId,
+        TestCode = oluMessage.TestCode,
+        TestName = oluMessage.TestName,
+        Result = oluMessage.Result,
+        Units = oluMessage.Units,
+        ReferenceRange = oluMessage.ReferenceRange,
+        ObservationDateTime = ParseDateTime(oluMessage.ObservationDateTime),
+        ResultStatus = oluMessage.ResultStatus
+    };
+}
+```
+
+![Mapping Configuration](screenshots/mapping-config.png)
 
 ## Requirements
 
@@ -36,6 +99,8 @@ A Windows application for receiving and processing HL7 messages from BioLis 30i 
    - Results grid at the bottom
    - Status bar at the very bottom
 
+![Application Layout](screenshots/layout.png)
+
 ### Configuration
 
 1. The default settings are:
@@ -52,7 +117,8 @@ A Windows application for receiving and processing HL7 messages from BioLis 30i 
    - Parsed and shown in the results grid
    - Automatically acknowledged
 4. Use "Clear All" to reset the console and results grid
-5. Click "Stop Listening" to stop receiving messages
+5. Click "Export CSV" to save the current results to a CSV file
+6. Click "Stop Listening" to stop receiving messages
 
 ### Message Processing
 
@@ -65,6 +131,8 @@ The application processes OUL (Observation Result) messages and displays:
 - Reference Range
 - Observation Date/Time
 - Result Status
+
+![Results Display](screenshots/results.png)
 
 ## Console Mode
 
@@ -114,4 +182,6 @@ This software is proprietary and confidential. Unauthorized copying, distributio
   - Initial release
   - Basic HL7 message processing
   - GUI interface
-  - Console mode support 
+  - Console mode support
+  - CSV export functionality
+  - Customizable result mapping 
